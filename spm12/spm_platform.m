@@ -151,6 +151,8 @@ if nargin<1
                     comp = 'GLNX86';
                 case {'armv6l','armv7l','armv8l','aarch64'}
                     comp = 'ARM';
+                case {'arm64'}
+                    comp = 'MACA64';
                 otherwise
                     error('%s is not supported.',comp);
             end
@@ -169,6 +171,7 @@ PDefs = {'PCWIN',     'win',   0;...
          'MAC',       'unx',   1;...
          'MACI',      'unx',   0;...
          'MACI64',    'unx',   0;...
+         'MACA64',    'unx',   0;...
          'GLNX86',    'unx',   0;...
          'GLNXA64',   'unx',   0;...
          'ARM',       'unx',   0};
@@ -228,7 +231,7 @@ PLATFORM.host = strtok(PLATFORM.host,'.');
 %-Fonts
 %--------------------------------------------------------------------------
 switch comp
-    case {'MAC','MACI','MACI64'}
+    case {'MAC','MACI','MACI64','MACA64'}
         PLATFORM.font.helvetica = 'TrebuchetMS';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';

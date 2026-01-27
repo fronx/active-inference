@@ -93,8 +93,8 @@ P.sense   = morphogenesis(P.position, P.signal); % signal sensed at each positio
  
 % initialise action and expectations
 %--------------------------------------------------------------------------
-v     = randn(n,n)/8;                     % states (identity)
-g     = Mg([],v,P);
+identityLogits = randn(n,n)/8;            % hidden causes (identity logits)
+g = Mg([],identityLogits,P);
 action.position = g.position;                  % action (chemotaxis)
 action.signal   = g.signal;                    % action (signal release)
  
@@ -133,7 +133,7 @@ M(1).pE = P;
  
 % level 2: 
 %--------------------------------------------------------------------------
-M(2).v  = v;
+M(2).v  = identityLogits;
 M(2).V  = exp(-2);
  
  
@@ -214,7 +214,7 @@ c     = c - min(c(:));
 c     = c/max(c(:));
 for i = 1:size(c,2)
     col = c(end - 2:end,i);
-    plot(x(2,i),x(1,i),'.','markersize',32,'color',col); hold on
+    plot(position(2,i),position(1,i),'.','markersize',32,'color',col); hold on
 end
  
 title('target signal','Fontsize',16)
@@ -292,12 +292,12 @@ hold off
 %--------------------------------------------------------------------------
 subplot(2,2,3); cla;
 for t = 1:N
-    v = spm_unvec(DEM.qU.a{2}(:,t),a);
+    v = spm_unvec(DEM.qU.a{2}(:,t),action);
     for i = 1:n
-        position = v.x(1,i);
-        sense = v.s(end - 2:end,i);
-        sense = full(max(min(sense,1),0));
-        plot(t,position,'.','markersize',16,'color',sense); hold on
+        pos = v.position(1,i);
+        col = v.signal(end - 2:end,i);
+        col = full(max(min(col,1),0));
+        plot(t,pos,'.','markersize',16,'color',col); hold on
     end
 end
  
@@ -313,19 +313,19 @@ hold off
 %--------------------------------------------------------------------------
 subplot(2,2,4);hold off, cla;
 for t = 1:N
-    v = spm_unvec(DEM.qU.a{2}(:,t),a);
-    
+    v = spm_unvec(DEM.qU.a{2}(:,t),action);
+
     for i = 1:n
-        position = v.x(:,i);
-        sense = v.s(end - 2:end,i);
-        sense = max(min(sense,1),0);
-        plot(position(2),position(1),'.','markersize',8,'color',full(sense)); hold on
-        
+        pos = v.position(:,i);
+        col = v.signal(end - 2:end,i);
+        col = max(min(col,1),0);
+        plot(pos(2),pos(1),'.','markersize',8,'color',full(col)); hold on
+
         % destination
         %------------------------------------------------------------------
         if t == N
-            plot(position(2),position(1),'.','markersize',16,'color',full(c));   hold on
-            plot(position(2),position(1),'h','markersize',12,'color',full(h*c)); hold on
+            plot(pos(2),pos(1),'.','markersize',16,'color',full(col));   hold on
+            plot(pos(2),pos(1),'h','markersize',12,'color',full(h*col)); hold on
         end
     end
     set(gca,'Color','k');
@@ -351,7 +351,7 @@ if ~exist(movieDir, 'dir')
     mkdir(movieDir);
 end
 for i = 1:length(Mov)
-    imwrite(Mov(i).sensedata, fullfile(movieDir, sprintf('frame_%03d.png', i)));
+    imwrite(Mov(i).cdata, fullfile(movieDir, sprintf('frame_%03d.png', i)));
 end
 fprintf('Frames saved to %s/ (use ffmpeg to create video)\n', movieDir);
 
@@ -406,12 +406,12 @@ action = spm_unvec(action, P);
 g.position(1,:) = action.position(1,:);                   % position  signal
 g.position(2,:) = action.position(2,:);                   % position  signal
 g.signal = action.signal;                                 % intrinsic signal
-g.sense      = signal * morphogenesis(action.position, action.signal);  % extrinsic signal
+g.sense  = signal * morphogenesis(action.position, action.signal);  % extrinsic signal
 
 
 % first level model: mapping hidden causes to sensations
 %--------------------------------------------------------------------------
-function g = Mg(_position, v, P)
+function g = Mg(_position, identityLogits, P)
 global t
 if isempty(t);
     signal = 0;
@@ -419,8 +419,8 @@ else
     signal = (1 - exp(-t*2));
 end
 
-p = spm_softmax(v);                   % expected identity
+identityBelief = spm_softmax(identityLogits);
 
-g.position = P.position*p;            % position
-g.signal   = P.signal*p;              % intrinsic signal
-g.sense    = signal*P.sense*p;            % extrinsic signal
+g.position = P.position*identityBelief;            % position
+g.signal   = P.signal*identityBelief;              % intrinsic signal
+g.sense    = signal*P.sense*identityBelief;        % extrinsic signal

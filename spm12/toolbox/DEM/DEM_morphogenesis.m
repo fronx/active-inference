@@ -72,6 +72,8 @@ p(:,:,3) = T == 3 | T == 1;
 p(:,:,4) = T == 4;
  
 [y,x] = find(p(:,:,1));
+
+% fronx: this subtracts the mean
 P.x   = spm_detrend([x(:) y(:)])'/2; 
  
 % signalling of each cell type
@@ -83,7 +85,8 @@ for i = 1:m
     s        = p(:,:,i);
     P.s(i,:) = s(j);
 end
-P.s   = double(P.s);
+
+P.s   = double(P.s); % fronx: signal matrix
 P.c   = morphogenesis(P.x,P.s);           % signal sensed at each position
  
 % initialise action and expectations
@@ -336,9 +339,20 @@ end
  
 set(gca,'Userdata',{Mov,8})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('Extrinsic (left click for movie)','FontSize',16)
-xlabel('location') 
- 
+title('Extrinsic','FontSize',16)
+xlabel('location')
+
+% save movie frames as images (Octave-compatible)
+%--------------------------------------------------------------------------
+movieDir = 'morphogenesis_frames';
+if ~exist(movieDir, 'dir')
+    mkdir(movieDir);
+end
+for i = 1:length(Mov)
+    imwrite(Mov(i).cdata, fullfile(movieDir, sprintf('frame_%03d.png', i)));
+end
+fprintf('Frames saved to %s/ (use ffmpeg to create video)\n', movieDir);
+
 return
  
  

@@ -60,6 +60,14 @@ Each level specifies:
 
 **Morphogenesis Function:** Computes signal concentration at each position based on distance-weighted sum of all cell signals (exponential decay with distance).
 
+## Development Workflow
+
+**Mathematical Collaboration:** When discussing mathematical topics, understanding modeling approaches, or analyzing assumptions and simplifications, use gpt-5.2 as a collaboration partner via the PAL MCP server (`mcp__pal__chat`). This is especially valuable for:
+- Understanding theoretical foundations of active inference
+- Analyzing what assumptions are baked into the code
+- Exploring how modeling choices affect behavior
+- Translating mathematical concepts to other domains
+
 ## Notes
 
 - `spm12/spm_platform.m` was patched to support Apple Silicon (arm64)

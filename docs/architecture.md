@@ -2,6 +2,76 @@
 
 This document shows the flow of library functions in `DEM_morphogenesis.m`, with inputs and outputs at each stage.
 
+## The Free Energy Minimization Loop
+
+```
+                      TARGET (P)
+                      P.position, P.signal, P.sense
+                      "what the system should be"
+                               │
+                               │ informs expect()
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│         MODEL (M)                              PROCESS (G)              │
+│         "the mind"                             "the world"              │
+│                                                                         │
+│ ┌─────────────┐                              ┌─────────────┐            │
+│ │   BELIEFS   │                              │   ACTIONS   │            │
+│ │             │                              │             │            │
+│ │ M(2).v      │                              │ G(2).a      │            │
+│ │ identityLogits                             │ .position   │            │
+│ │ "who am I?" │                              │ .signal     │            │
+│ └──────┬──────┘                              └──────┬──────┘            │
+│        │                                           │                   │
+│        │ M(1).g = expect()                         │ G(1).g = observe()│
+│        │ "given my beliefs,                        │ "given my actions,│
+│        │  what should I see?"                      │  what happens?"   │
+│        ▼                                           ▼                   │
+│ ┌─────────────┐                              ┌─────────────┐            │
+│ │  EXPECTED   │                              │  OBSERVED   │            │
+│ │  CellState  │                              │  CellState  │            │
+│ │             │         compare              │             │            │
+│ │ M(1).v      │ ─────────────────────────►   │ G(1).v      │            │
+│ │ .position   │                              │ .position   │            │
+│ │ .signal     │                              │ .signal     │            │
+│ │ .sense      │                              │ .sense      │            │
+│ └─────────────┘                              └─────────────┘            │
+│                              │                                          │
+│                              ▼                                          │
+│                    ┌──────────────────┐                                 │
+│                    │ PREDICTION ERROR │                                 │
+│                    │ expected-observed│                                 │
+│                    └────────┬─────────┘                                 │
+│                             │                                           │
+│              ┌──────────────┴──────────────┐                            │
+│              │                             │                            │
+│              ▼                             ▼                            │
+│       update beliefs               update actions                       │
+│       "who am I, given             "move/signal to                      │
+│        this evidence?"              reduce error"                       │
+│              │                             │                            │
+│              └──────────────┬──────────────┘                            │
+│                             │                                           │
+│                        (next iteration)                                 │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                               │
+                               │ converges to
+                               ▼
+                      RESULT: cells find positions
+                      and identities that are
+                      mutually consistent
+```
+
+**The core insight**: Each cell simultaneously:
+1. **Updates beliefs** about its identity to better explain what it observes
+2. **Updates actions** to make observations match what it expects given those beliefs
+
+Both updates reduce **free energy** (prediction error). The system converges when each cell has found an identity and position that are mutually consistent.
+
+---
+
 ## Overview
 
 ```

@@ -62,11 +62,7 @@ Each level specifies:
 
 ## Development Workflow
 
-**Mathematical Collaboration:** When discussing mathematical topics, understanding modeling approaches, or analyzing assumptions and simplifications, use gpt-5.2 as a collaboration partner via the PAL MCP server (`mcp__pal__chat`). This is especially valuable for:
-- Understanding theoretical foundations of active inference
-- Analyzing what assumptions are baked into the code
-- Exploring how modeling choices affect behavior
-- Translating mathematical concepts to other domains
+**Mathematical Collaboration:** Use gpt-5.2 via `mcp__pal__chat` for mathematical topics and modeling discussions. Supports multi-turn conversations via `continuation_id` - pass it from one response to the next to maintain context.
 
 ## Notes
 

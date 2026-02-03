@@ -94,7 +94,7 @@ P.sense   = morphogenesis(P.position, P.signal); % signal sensed at each positio
 % initialise action and expectations
 %--------------------------------------------------------------------------
 identityLogits = randn(n,n)/8;            % hidden causes (identity logits)
-g = Mg([],identityLogits,P);
+g = expect([],identityLogits,P);
 action.position = g.position;                  % action (chemotaxis)
 action.signal   = g.signal;                    % action (signal release)
  
@@ -106,8 +106,8 @@ R     = spm_cat({kron(eye(n,n),ones(2,2)) []; [] kron(eye(n,n),ones(4,4));
 
 % level 1 of generative process
 %--------------------------------------------------------------------------
-G(1).g  = @(position, v, action,P) Gg(position, v, action, P);
-G(1).v  = Gg([], [], action, action);
+G(1).g  = @(position, v, action, P) observe(position, v, action, P);
+G(1).v  = observe([], [], action, action);
 G(1).V  = exp(16);                         % precision (noise)
 G(1).U  = exp(2);                          % precision (action)
 G(1).R  = R;                               % restriction matrix
@@ -126,7 +126,7 @@ G(2).V  = exp(16);
  
 % level 1 of the generative model: 
 %--------------------------------------------------------------------------
-M(1).g  = @(position, v, P) Mg([], v, P);
+M(1).g  = @(position, v, P) expect([], v, P);
 M(1).v  = g;
 M(1).V  = exp(3);
 M(1).pE = P;
@@ -392,35 +392,46 @@ for i = 1:n
 end
  
  
-% first level process: generating input
+% CellState: the observable state of each cell
 %--------------------------------------------------------------------------
-function g = Gg(_position, v, action, P)
+function state = CellState(position, signal, sense)
+    state.position = position;
+    state.signal = signal;
+    state.sense = sense;
+
+
+% observe: generative process - maps actions to actual observations
+%--------------------------------------------------------------------------
+function observed = observe(_position, v, action, P)
 global t
 if isempty(t);
-    signal = 0;
+    signalStrength = 0;
 else
-    signal = (1 - exp(-t*2));
+    signalStrength = (1 - exp(-t*2));
 end
 action = spm_unvec(action, P);
 
-g.position(1,:) = action.position(1,:);                   % position  signal
-g.position(2,:) = action.position(2,:);                   % position  signal
-g.signal = action.signal;                                 % intrinsic signal
-g.sense  = signal * morphogenesis(action.position, action.signal);  % extrinsic signal
+position = action.position;
+signal = action.signal;
+sense = signalStrength * morphogenesis(action.position, action.signal);
+
+observed = CellState(position, signal, sense);
 
 
-% first level model: mapping hidden causes to sensations
+% expect: generative model - maps beliefs to expected observations
 %--------------------------------------------------------------------------
-function g = Mg(_position, identityLogits, P)
+function expected = expect(_position, identityLogits, P)
 global t
 if isempty(t);
-    signal = 0;
+    signalStrength = 0;
 else
-    signal = (1 - exp(-t*2));
+    signalStrength = (1 - exp(-t*2));
 end
 
 identityBelief = spm_softmax(identityLogits);
 
-g.position = P.position*identityBelief;            % position
-g.signal   = P.signal*identityBelief;              % intrinsic signal
-g.sense    = signal*P.sense*identityBelief;        % extrinsic signal
+position = P.position * identityBelief;
+signal = P.signal * identityBelief;
+sense = signalStrength * P.sense * identityBelief;
+
+expected = CellState(position, signal, sense);

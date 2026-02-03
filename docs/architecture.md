@@ -13,9 +13,9 @@ This document shows the flow of library functions in `DEM_morphogenesis.m`, with
 
 The library provides the **solver** (`spm_ADEM`). You provide:
 1. **Target configuration** (P) - what the system should converge to
-2. **Generative process** (Gg) - how the world produces observations from actions
-3. **Generative model** (Mg) - how the agent predicts observations from beliefs
-4. **Signal propagation** (morphogenesis) - how influence spreads through the system
+2. **observe()** - generative process: how the world produces observations from actions
+3. **expect()** - generative model: how the agent predicts observations from beliefs
+4. **morphogenesis()** - how influence/signals spread through the system
 
 ---
 
@@ -52,7 +52,7 @@ The library provides the **solver** (`spm_ADEM`). You provide:
 │     identityLogits = randn(n,n)/8     (n×n matrix: "who am I?" beliefs)     │
 │            │                                                                │
 │            ▼                                                                │
-│        Mg(identityLogits, P)  ──────► g.position, g.signal, g.sense         │
+│        expect(identityLogits, P)  ──► CellState{position, signal, sense}    │
 │           [CUSTOM]                    (expected observations given beliefs) │
 │            │                                                                │
 │            └──► uses spm_softmax()    (converts logits to probabilities)    │
@@ -71,8 +71,8 @@ The library provides the **solver** (`spm_ADEM`). You provide:
 │     R = spm_cat({...})                 (restriction matrix: which actions   │
 │           [LIBRARY]                     affect which observations)          │
 │                                                                             │
-│     G(1).g  = @Gg(x,v,action,P)        (observation function)    [CUSTOM]   │
-│     G(1).v  = Gg([],[],action,action)  (initial observations)               │
+│     G(1).g  = @observe(x,v,action,P)   (observation function)    [CUSTOM]   │
+│     G(1).v  = observe([],[],action,action)  (initial observations)          │
 │     G(1).V  = exp(16)                  (high precision = low noise)         │
 │     G(1).U  = exp(2)                   (action precision)                   │
 │     G(1).R  = R                        (restriction matrix)                 │
@@ -88,7 +88,7 @@ The library provides the **solver** (`spm_ADEM`). You provide:
 │  4. BUILD GENERATIVE MODEL (M) - "The Agent's Beliefs"                      │
 │  ───────────────────────────────────────────────────────────────────────    │
 │                                                                             │
-│     M(1).g  = @Mg(x,v,P)               (observation model)       [CUSTOM]   │
+│     M(1).g  = @expect(x,v,P)           (observation model)       [CUSTOM]   │
 │     M(1).v  = g                        (initial expectations)               │
 │     M(1).V  = exp(3)                   (observation precision)              │
 │     M(1).pE = P                        (prior parameters - the target!)     │
@@ -124,8 +124,8 @@ The library provides the **solver** (`spm_ADEM`). You provide:
 │            │  Internally iterates:                                          │
 │            │  ┌────────────────────────────────────────────────────────┐    │
 │            │  │  for t = 1:N                                           │    │
-│            │  │      1. Generate observations via G(1).g (calls Gg)    │    │
-│            │  │      2. Predict observations via M(1).g (calls Mg)     │    │
+│            │  │      1. Generate observations via G(1).g (calls observe) │   │
+│            │  │      2. Predict observations via M(1).g (calls expect)  │   │
 │            │  │      3. Compute prediction error                       │    │
 │            │  │      4. Update beliefs (identityLogits)                │    │
 │            │  │      5. Update actions to minimize free energy         │    │
@@ -183,41 +183,41 @@ The library provides the **solver** (`spm_ADEM`). You provide:
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Gg() - Generative Process (World Dynamics)
+### observe() - Generative Process (World Dynamics)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  Gg(x, v, action, P) - Generative Process                                   │
+│  observe(x, v, action, P) - Generative Process                              │
 │  ───────────────────────────────────────────────────────────────────────    │
 │  INPUT:  action (struct) - current actions {position, signal}               │
 │          P (struct)      - parameters                                       │
-│  OUTPUT: g (struct)      - observations {position, signal, sense}           │
+│  OUTPUT: CellState       - observed {position, signal, sense}               │
 │                                                                             │
 │  WHAT IT DOES: Maps actions to observations in the real world               │
-│    g.position = action.position                                             │
-│    g.signal   = action.signal                                               │
-│    g.sense    = morphogenesis(action.position, action.signal)               │
+│    observed.position = action.position                                      │
+│    observed.signal   = action.signal                                        │
+│    observed.sense    = morphogenesis(action.position, action.signal)        │
 │                                                                             │
 │  REPLACE WITH: Your domain's "world dynamics"                               │
 │    - How does taking action X produce observation Y?                        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Mg() - Generative Model (Belief-to-Prediction)
+### expect() - Generative Model (Belief-to-Prediction)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  Mg(x, identityLogits, P) - Generative Model                                │
+│  expect(x, identityLogits, P) - Generative Model                            │
 │  ───────────────────────────────────────────────────────────────────────    │
 │  INPUT:  identityLogits (n×n) - beliefs about identity                      │
 │          P (struct)           - prior parameters (target configuration)     │
-│  OUTPUT: g (struct)           - predicted observations                      │
+│  OUTPUT: CellState            - expected {position, signal, sense}          │
 │                                                                             │
 │  WHAT IT DOES: "If I believe I'm cell k, what should I observe?"            │
 │    identityBelief = softmax(identityLogits)   # who do I think I am?        │
-│    g.position = P.position × identityBelief   # where should I be?          │
-│    g.signal   = P.signal × identityBelief     # what should I emit?         │
-│    g.sense    = P.sense × identityBelief      # what should I sense?        │
+│    expected.position = P.position × identityBelief   # where should I be?   │
+│    expected.signal   = P.signal × identityBelief     # what should I emit?  │
+│    expected.sense    = P.sense × identityBelief      # what should I sense? │
 │                                                                             │
 │  REPLACE WITH: Your domain's "belief-to-prediction" mapping                 │
 │    - Given my beliefs about my role, what do I expect to experience?        │
@@ -231,13 +231,73 @@ The library provides the **solver** (`spm_ADEM`). You provide:
 | Function        | Purpose                                      | When Called           |
 |-----------------|----------------------------------------------|-----------------------|
 | `spm_ADEM()`    | THE SOLVER - runs active inference loop      | Once, after setup     |
-| `spm_softmax()` | Converts logits → probabilities              | In Mg(), visualization|
+| `spm_softmax()` | Converts logits → probabilities              | In expect(), visualization|
 | `spm_vec()`     | Flatten struct → vector                      | Packing for solver    |
 | `spm_unvec()`   | Vector → struct (with template)              | Unpacking results     |
 | `spm_cat()`     | Concatenate cell arrays → matrix             | Building R matrix     |
 | `spm_detrend()` | Center data (subtract mean)                  | Coordinate centering  |
 | `spm_DEM_qU()`  | Visualize inference results                  | After solving         |
 | `spm_figure()`  | Figure window management                     | Plotting              |
+
+---
+
+## SPM Naming Conventions
+
+The SPM library uses single-letter variable names that follow specific conventions. We preserve these for compatibility with the library and documentation.
+
+### Core Structures (passed to spm_ADEM)
+
+| Name | Meaning | Mnemonic |
+|------|---------|----------|
+| `G` | **G**enerative process | The world / ground truth |
+| `M` | Generative **M**odel | The agent's mind / beliefs |
+| `DEM` | **D**ynamic **E**xpectation **M**aximization | The complete problem specification |
+
+### Hierarchy Levels
+
+Both `G` and `M` are arrays representing hierarchical levels:
+
+```
+G(1)  - Level 1: Maps actions → observations (calls observe())
+G(2)  - Level 2: Action variables
+
+M(1)  - Level 1: Maps beliefs → predictions (calls expect())
+M(2)  - Level 2: Hidden causes (identity beliefs)
+```
+
+### Common Field Names
+
+| Field | Meaning |
+|-------|---------|
+| `.g` | Observation function: `y = g(x, v, P)` |
+| `.f` | State transition: `dx/dt = f(x, v, P)` (not used in morphogenesis) |
+| `.v` | Hidden causes (causal states) |
+| `.x` | Hidden states (not used in morphogenesis - point attractor) |
+| `.V` | Precision of observations (inverse variance, higher = more confident) |
+| `.W` | Precision of state transitions |
+| `.U` | Precision of actions |
+| `.pE` | Prior expectation of parameters |
+| `.a` | Action variables |
+| `.R` | Restriction matrix (which actions affect which observations) |
+
+### Output Structures
+
+| Name | Meaning |
+|------|---------|
+| `qU` | Posterior (**q**) over states (**U**) - what the agent infers |
+| `pU` | Prior/Process (**p**) states (**U**) - ground truth from generative process |
+| `J` | Negative free energy (log evidence) - should increase over time |
+
+### Precision Values
+
+Precision = 1/variance. Higher precision means more confidence/less noise.
+
+| Value | Meaning | Typical Use |
+|-------|---------|-------------|
+| `exp(16)` | Very high precision | Process noise (world is deterministic) |
+| `exp(3)` | Medium precision | Observation confidence |
+| `exp(2)` | Medium precision | Action precision |
+| `exp(-2)` | Low precision | Flexible/uncertain beliefs |
 
 ---
 

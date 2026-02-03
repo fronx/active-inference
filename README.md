@@ -17,6 +17,10 @@ octave --gui run_morphogenesis.m
 
 16 cells start at identical positions and self-assemble into a target morphology (head-body-tail) over 32 time steps using active inference (free energy minimization).
 
+## Documentation
+
+- [Architecture](docs/architecture.md) - Detailed flow diagram showing how the SPM12 library and custom model code interact
+
 ## Notes
 
 - `spm12/spm_platform.m` was patched to support Apple Silicon (arm64)

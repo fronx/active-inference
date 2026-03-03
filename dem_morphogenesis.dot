@@ -1,0 +1,63 @@
+digraph DEM_Morphogenesis_Dataflow {
+  rankdir=LR;
+  graph [fontsize=12, fontname="Helvetica", labelloc="t",
+         label="DEM_morphogenesis: high-level active inference dataflow (spm_ADEM as black box)"];
+  node  [shape=box, fontsize=11, fontname="Helvetica", style="rounded"];
+  edge  [fontsize=10, fontname="Helvetica"];
+
+  // -------------------------
+  // Coupling / solver
+  // -------------------------
+  spm_ADEM [shape=box, style="rounded,filled", fillcolor="#f2f2f2",
+            label="spm_ADEM(DEM)\n(active inference / variational loop)\nupdates qU.v, qU.a, etc."];
+
+  // -------------------------
+  // Generative Process cluster (G)
+  // -------------------------
+  subgraph cluster_G {
+    label="Generative Process (G)";
+    style="rounded";
+    color="#4e79a7";
+
+    a_G [label="a_G\nG(2).a\n(endogenous cause / action vector)\n≈ spm_vec(action)"];
+    g_G [label="g_G\nG(1).g\nobserve(...)\n(action → observations)"];
+    y   [label="y\nobservations (process)\nCellState {position, signal, sense}"];
+
+    // internal process flow
+    a_G -> g_G [label="action a(t)"];
+    g_G -> y   [label="y(t)"];
+  }
+
+  // -------------------------
+  // Generative Model cluster (M)
+  // -------------------------
+  subgraph cluster_M {
+    label="Generative Model (M)";
+    style="rounded";
+    color="#59a14f";
+
+    v_M [label="v_M\nM(2).v\n(hidden causes)\nidentityLogits"];
+    P   [label="P\nM(1).pE\n(priors / prototypes)\nTarget morphology"];
+    g_M [label="g_M\nM(1).g\nexpect(...)\n(causes + priors → predicted obs)"];
+    yhat [label="ŷ\npredicted observations (model)\nCellState {position, signal, sense}"];
+
+    // internal model flow
+    v_M -> g_M  [label="beliefs over causes"];
+    P   -> g_M  [label="priors / prototypes"];
+    g_M -> yhat [label="ŷ(t)"];
+  }
+
+  // -------------------------
+  // Coupling edges via active inference loop
+  // -------------------------
+  y    -> spm_ADEM [label="sensory evidence y(t)"];
+  yhat -> spm_ADEM [label="predictions ŷ(t)\n→ prediction errors"];
+
+  spm_ADEM -> v_M [label="inference update\n(qU.v / posterior causes)"];
+  spm_ADEM -> a_G [label="action update\n(qU.a / posterior action)"];
+
+  // Optional: layout hints (keeps clusters roughly aligned)
+  { rank=same; a_G; v_M; }
+  { rank=same; g_G; g_M; }
+  { rank=same; y; yhat; }
+}

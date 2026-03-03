@@ -1,3 +1,5 @@
 *.mat
 morphogenesis_frames/*
 morphogenesis.mp4
+node_modules/
+dist/

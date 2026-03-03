@@ -1,0 +1,35 @@
+{
+  "name": "active-inference",
+  "version": "1.0.0",
+  "description": "Reproduces the simulations from [Friston et al. 2015 - \"Knowing one's place: a free-energy approach to pattern regulation\"](https://pmc.ncbi.nlm.nih.gov/articles/PMC4387527/).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "build": "tsc",
+    "example": "tsx src/example.ts",
+    "example:dsl": "tsx src/example-dsl.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fronx/active-inference.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fronx/active-inference/issues"
+  },
+  "homepage": "https://github.com/fronx/active-inference#readme",
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "@vitest/ui": "^4.0.18",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

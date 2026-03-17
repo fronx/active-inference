@@ -1,5 +1,6 @@
 addpath('spm12');
 addpath('spm12/toolbox/DEM');
+addpath('psychology');
 
 dem_psychology('healthy');
 dem_psychology('depressed');

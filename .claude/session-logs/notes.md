@@ -1,26 +1,35 @@
 # Session Notes
 
 ## Current Focus
-- Building `dem_psychology.m`: active inference model of energy expenditure dysregulation (depression/mania as precision pathologies)
+- React web UI for interactive psychology model exploration, backed by persistent Octave worker
 
-## Recent Context
-- Model mirrors morphogenesis structure: generative process (observe) + generative model (expect) + regime-specific precisions
-- Three regimes: healthy (loose priors, high sensory precision), depressed (rigid low-agency prior), manic (rigid high-agency prior)
-- Depression and mania share identical precision structure — only the initial belief bias differs
+## What Was Done
+- **Removed categorical belief layer**: Model no longer uses softmax over archetypes (high-agency/balanced/low-agency). Hidden causes are now direct beliefs about the world: [expected_energy, expected_reward, expected_fatigue]. Categories (healthy/depressed/manic) exist only as UI presets.
+- **Modularized Octave code**: Extracted from monolithic `dem_psychology.m` into `psychology/` folder with separate files: `dem_psychology_core.m`, `psychology_expect.m`, `psychology_observe.m`, `psychology_extract.m`, `psychology_params.m`
+- **Built web app**: React frontend (Vite + Recharts) with parameter sliders and 4 charts. Express backend spawns persistent Octave worker via stdin/stdout protocol. Disk + client-side caching by parameter hash. SSE streaming of results.
+- **Verified**: Octave JSON pipeline tested end-to-end. Both client and server type-check clean.
 
-## Open Threads
-- Haven't run the model yet — need to verify dimensions (G(1).R = ones(3,1) with 1 action dim and 3 observables)
-- Need to validate spm_ADEM integration (struct-based observations vs vector expectations)
-
-## Commands
+## Architecture
+- `psychology/` — all Octave model files
+- `psychology/psychology_worker.m` — persistent worker (stdin JSON → stdout JSON, `__READY__`/`__DONE__` protocol)
+- `web/server/` — Express backend (port 3001), spawns Octave worker on boot
+- `web/client/` — Vite React app (port 5173), sliders + presets + streaming charts
 
 ## Next Steps
-- Run `dem_psychology('healthy')` in Octave and check for dimension errors
-- Compare output plots across all three regimes
-- Write up interpretation of precision pathology results
+- Smoke test full stack (start both servers, run simulation through UI)
+- Verify the direct-belief model produces meaningful dynamics across regimes
+- Consider whether the model needs state dynamics (f function) for belief momentum
+- UI polish: better loading states, parameter descriptions/tooltips
+
+## Commands
+```bash
+cd web/server && npm run dev   # backend (starts Octave worker)
+cd web/client && npm run dev   # frontend
+```
 
 ## Key Locations
-- `dem_psychology.m` — main model
-- `spm12/toolbox/DEM/DEM_morphogenesis.m` — reference implementation
-- `spm12/spm_ADEM.m` — solver
+- `psychology/dem_psychology_core.m` — core simulation
+- `psychology/psychology_worker.m` — persistent Octave worker
+- `web/server/src/octave.ts` — worker management
+- `web/client/src/components/` — UI components
 - `psychology.md` — conceptual writeup

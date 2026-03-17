@@ -22,10 +22,10 @@ M(1).E.n = 2;                             % embedding order
 M(1).E.s = 1;                             % smoothness
 
 
-% priors (templates for each mood state)
+% priors (templates for each core belief state)
 %--------------------------------------------------------------------------
-% Columns represent [manic, balanced, depressed].
-% These define what each mood state "looks like" in terms of observables.
+% Columns represent [high-agency, balanced, low-agency] core beliefs.
+% These define what each belief state predicts in terms of observables.
 % Analogous to P.position and P.signal in morphogenesis.
 
 P.energy  = [1.4; 1.0; 0.6];              % energy expenditure
@@ -35,8 +35,8 @@ P.fatigue = [0.2; 0.4; 0.8];              % subjective fatigue
 
 % initialise hidden causes, action, and expectations
 %--------------------------------------------------------------------------
-moodLogits = zeros(3, 1);                  % hidden causes (mood logits)
-g          = expect([], moodLogits, P);    % initial expected observations
+beliefLogits = zeros(3, 1);                  % hidden causes (core belief logits)
+g          = expect([], beliefLogits, P);    % initial expected observations
 action.energy = g.energy;                  % initial action
 
 
@@ -50,7 +50,7 @@ G(1).v  = observe([], [], action, action); % initial observations
 G(1).V  = exp(16);                         % precision (low process noise)
 G(1).U  = exp(2);                          % precision (action)
 G(1).R  = ones(3, 1);                      % restriction: all obs inform action
-G(1).pE = action;                          % action template
+G(1).pE = action;                          % shape template for spm_unvec (struct layout, not values)
 
 % level 2: action
 %--------------------------------------------------------------------------
@@ -67,23 +67,23 @@ G(2).V  = exp(16);
 M(1).g  = @(x, v, P) expect([], v, P);
 M(1).v  = g;                               % initial expected observations
 M(1).V  = exp(3);                          % sensory precision (trusts evidence)
-M(1).pE = P;                               % mood templates (prior expectation)
+M(1).pE = P;                               % belief templates (prior expectation)
 np      = spm_length(P);
 M(1).pC = eye(np, np) * exp(-2);           % template flexibility (prior covariance)
 
 % level 2: hidden causes
 %--------------------------------------------------------------------------
-M(2).v  = moodLogits;
+M(2).v  = beliefLogits;
 
 
 % regime-specific settings
 %==========================================================================
-% M(2).v  = initial mood logits (where inference starts)
-% U       = prior expectation on mood logits over time (the attractor)
+% M(2).v  = initial belief logits (where inference starts)
+% U       = prior expectation on belief logits over time (the attractor)
 % M(2).V  = precision on that prior (how rigid the attractor is)
 % M(1).V  = sensory precision (how much evidence is trusted)
 
-moodPrior = zeros(3, 1);                   % default: flat prior
+beliefPrior = zeros(3, 1);                   % default: flat prior
 
 switch regime
     case 'healthy'
@@ -91,15 +91,15 @@ switch regime
         % M(1).pC already set — templates revisable
 
     case 'depressed'
-        moodPrior = [-1; 0; 2];            % prior biased toward depressive state
-        M(2).v = moodPrior;                % start at the prior
+        beliefPrior = [-1; 0; 2];            % prior biased toward depressive state
+        M(2).v = beliefPrior;                % start at the prior
         M(2).V = exp(4);                   % rigid prior: resists evidence
         M(1).V = exp(0);                   % low sensory precision
         M(1).pC = eye(np, np) * exp(-8);   % templates frozen
 
     case 'manic'
-        moodPrior = [2; 0; -1];            % prior biased toward manic state
-        M(2).v = moodPrior;                % start at the prior
+        beliefPrior = [2; 0; -1];            % prior biased toward manic state
+        M(2).v = beliefPrior;                % start at the prior
         M(2).V = exp(4);                   % rigid prior
         M(1).V = exp(0);                   % low sensory precision
         M(1).pC = eye(np, np) * exp(-8);   % templates frozen
@@ -109,7 +109,7 @@ end
 % hidden cause and prior expectations
 %--------------------------------------------------------------------------
 C = zeros(1, N);                           % exogenous causes (none)
-U = repmat(moodPrior, 1, N);              % prior on mood logits (the attractor)
+U = repmat(beliefPrior, 1, N);              % prior on belief logits (the attractor)
 
 
 % assemble model structure
@@ -215,17 +215,17 @@ g.fatigue = 0.3 * energy.^2;              % quadratic cost
 end
 
 
-% generative model: maps mood beliefs to expected observations
+% generative model: maps core beliefs to expected observations
 %--------------------------------------------------------------------------
-function g = expect(x, moodLogits, P)
-% softmax(moodLogits) gives belief weights over [manic, balanced, depressed].
+function g = expect(x, beliefLogits, P)
+% softmax(beliefLogits) gives belief weights over [high-agency, balanced, low-agency].
 % Expected observation = template * beliefs (weighted sum).
 % Directly parallels morphogenesis: P.position * identityBelief.
 
-mood = spm_softmax(moodLogits);
+belief = spm_softmax(beliefLogits);
 
-g.energy  = P.energy'  * mood;
-g.reward  = P.reward'  * mood;
-g.fatigue = P.fatigue' * mood;
+g.energy  = P.energy'  * belief;
+g.reward  = P.reward'  * belief;
+g.fatigue = P.fatigue' * belief;
 
 end

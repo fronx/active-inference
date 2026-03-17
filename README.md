@@ -1,37 +1,41 @@
-# Active Inference Morphogenesis Simulation
+# Active Inference
 
-Reproduces the simulations from [Friston et al. 2015 - "Knowing one's place: a free-energy approach to pattern regulation"](https://pmc.ncbi.nlm.nih.gov/articles/PMC4387527/).
+Exploring active inference by building toy models on SPM12's `spm_ADEM` solver.
 
 ## Requirements
 
 - macOS with Homebrew
 - GNU Octave: `brew install octave`
 
-## Run
+## Models
+
+### Morphogenesis
+
+Reproduces [Friston et al. 2015 - "Knowing one's place: a free-energy approach to pattern regulation"](https://pmc.ncbi.nlm.nih.gov/articles/PMC4387527/). 16 cells start at identical positions and self-assemble into a target morphology (head-body-tail) over 32 time steps using free energy minimization.
 
 ```bash
 octave --gui run_morphogenesis.m
 ```
 
-### Psychology Toy Model
+### Psychology
 
-Generate a minimal affective dynamics example that contrasts depressive (down-regulated) and manic (up-regulated) energy biases:
+An agent expends energy and observes what comes back: reward (diminishing returns) and fatigue (quadratic cost). It maintains core beliefs about self-efficacy — "effort pays off," "moderate returns," or "effort is futile" — that shape how much energy it expends, which shapes what it observes, which reinforces the beliefs.
+
+Same generative process, same model structure, different precision balance:
+
+- **Healthy**: loose prior, high sensory precision — beliefs update from evidence, agent converges to moderate effort
+- **Depressed**: rigid prior toward "effort is futile," low sensory precision — low effort produces low reward, confirming the belief
+- **Manic**: rigid prior toward "effort always pays off," low sensory precision — high effort hits diminishing returns, but prediction errors are ignored
 
 ```bash
-npm run example:psychology > dem_psychology.m
-octave --gui dem_psychology.m
+octave --gui run_psychology.m
 ```
 
-The emitted MATLAB/Octave file defines a single-degree-of-freedom controller (`energyPolicy`) with biased feedback loops so you can explore how dysregulated energy expenditure shapes its own trajectory.
-
-## What it does
-
-16 cells start at identical positions and self-assemble into a target morphology (head-body-tail) over 32 time steps using active inference (free energy minimization).
+See [psychology.md](psychology.md) for the full model description.
 
 ## Documentation
 
-- [Architecture](docs/architecture.md) - Detailed flow diagram showing how the SPM12 library and custom model code interact
-- [Psychology Toy Model](docs/psychology-toy-model.md) - Rationale and math for the manic/depressive energy bias example
+- [Architecture](docs/architecture.md) - How the SPM12 library and custom model code interact
 
 ## Notes
 

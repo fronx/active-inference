@@ -19,10 +19,11 @@ The gap between predicted and actual observations is **prediction error**. The a
         Model (M)                             Process (G)
         the agent's beliefs                   reality
 
-   DEM.U ──> belief logits                    action
-   (prior     M(2).v                          G(2).a
-   attractor)      |                               |
-      pi_b         | softmax + templates           | physics
+              belief logits                    action
+               M(2).v                          G(2).a
+                   |                               |
+   DEM.U ─ pi_b ─>|  softmax + templates           | physics
+   (attractor)     |                               |
                    v                               v
               expect()                        observe()
                    |                               |

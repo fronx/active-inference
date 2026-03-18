@@ -11,9 +11,12 @@
 
 ## Architecture
 - `psychology/` — all Octave model files
-- `psychology/psychology_worker.m` — persistent worker (stdin JSON → stdout JSON, `__READY__`/`__DONE__` protocol)
+- `psychology/psychology_worker.m` — persistent worker (FIFO input → stdout JSON, `__READY__`/`__DONE__` protocol)
 - `web/server/` — Express backend (port 3001), spawns Octave worker on boot
 - `web/client/` — Vite React app (port 5173), sliders + presets + streaming charts
+
+## Known Issues
+- Octave ignores Node.js stdin pipes (`fgetl(stdin)` never receives data). Solved by using a named pipe (FIFO) at `/tmp/octave_psychology_worker` for IPC instead.
 
 ## Next Steps
 - Smoke test full stack (start both servers, run simulation through UI)

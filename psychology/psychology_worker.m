@@ -1,23 +1,32 @@
-function psychology_worker()
-% Persistent Octave worker. Reads JSON params from stdin, writes JSON results to stdout.
+function psychology_worker(fifo_path)
+% Persistent Octave worker. Reads JSON params from a FIFO, writes results to stdout.
 % Stays alive between requests to avoid startup cost.
 %
+% Args:
+%   fifo_path - path to a named pipe (FIFO) for receiving commands
+%
 % Protocol:
-%   - Reads one line of JSON from stdin
+%   - Reads one line of JSON from FIFO
 %   - Runs simulation
 %   - Writes one line of JSON to stdout
 %   - Writes __DONE__ on its own line
-%   - Loops until stdin closes
+%   - Loops until FIFO is closed
 
 % signal ready
 fprintf('__READY__\n');
 fflush(stdout);
 
 while true
-    line = fgetl(stdin);
-    if ~ischar(line); break; end        % EOF — exit
+    % open FIFO for reading (blocks until writer connects)
+    fid = fopen(fifo_path, 'r');
+    if fid == -1; break; end
+
+    line = fgetl(fid);
+    fclose(fid);
+
+    if ~ischar(line); continue; end
     line = strtrim(line);
-    if isempty(line); continue; end     % skip blank lines
+    if isempty(line); continue; end
 
     try
         params = jsondecode(line);

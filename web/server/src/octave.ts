@@ -1,10 +1,12 @@
-import { spawn, type ChildProcess } from "child_process";
+import { spawn, execSync, type ChildProcess } from "child_process";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { writeFileSync, unlinkSync } from "fs";
 import type { SimulationParams, SimulationResult } from "./types.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "..", "..", "..");
+const FIFO_PATH = "/tmp/octave_psychology_worker";
 
 let worker: ChildProcess | null = null;
 let ready = false;
@@ -20,28 +22,36 @@ function log(msg: string) {
   console.log(`[octave] ${msg}`);
 }
 
+function createFifo() {
+  try {
+    unlinkSync(FIFO_PATH);
+  } catch {}
+  execSync(`mkfifo ${FIFO_PATH}`);
+}
+
 export function startWorker(): Promise<void> {
   return new Promise((resolve, reject) => {
     log("Starting persistent Octave worker...");
+    createFifo();
 
-    const evalCmd =
-      "addpath('spm12','spm12/toolbox/DEM','psychology'); psychology_worker()";
-    worker = spawn("octave", ["--no-gui", "--eval", evalCmd], {
+    const cmd = `addpath('spm12','spm12/toolbox/DEM','psychology'); psychology_worker('${FIFO_PATH}')`;
+    worker = spawn("octave", ["--no-gui", "--eval", cmd], {
       cwd: PROJECT_ROOT,
-      stdio: ["pipe", "pipe", "pipe"],
+      stdio: ["ignore", "pipe", "pipe"],
     });
 
     worker.stderr!.on("data", (chunk) => {
-      // Octave prints warnings to stderr — log but don't crash
       const text = chunk.toString().trim();
-      if (text) log(`stderr: ${text}`);
+      if (text) log(`stderr: ${text.slice(0, 200)}`);
     });
 
     worker.on("close", (code) => {
       log(`Worker exited with code ${code}`);
       ready = false;
       worker = null;
-      // reject any pending requests
+      try {
+        unlinkSync(FIFO_PATH);
+      } catch {}
       for (const item of queue) {
         item.reject(new Error("Octave worker exited unexpectedly"));
       }
@@ -53,66 +63,51 @@ export function startWorker(): Promise<void> {
       reject(err);
     });
 
-    // wait for __READY__ signal
-    const onData = (chunk: Buffer) => {
-      stdoutBuffer += chunk.toString();
+    worker.stdout!.on("data", (chunk: Buffer) => {
+      const raw = chunk.toString();
+      stdoutBuffer += raw;
+
       const lines = stdoutBuffer.split("\n");
       stdoutBuffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        if (line.trim() === "__READY__") {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        if (trimmed === "__READY__") {
           ready = true;
           log("Worker ready");
           resolve();
-          return;
-        }
-      }
-    };
-    worker.stdout!.on("data", onData);
-
-    // after ready, switch to the request handler
-    const switchToRequestHandler = () => {
-      worker!.stdout!.removeListener("data", onData);
-      worker!.stdout!.on("data", handleStdout);
-    };
-
-    // resolve switches handler
-    const origResolve = resolve;
-    resolve = () => {
-      switchToRequestHandler();
-      origResolve();
-    };
-  });
-}
-
-function handleStdout(chunk: Buffer) {
-  stdoutBuffer += chunk.toString();
-  const lines = stdoutBuffer.split("\n");
-  stdoutBuffer = lines.pop() ?? "";
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed === "__DONE__") {
-      processing = false;
-      processQueue();
-    } else if (trimmed.startsWith("{")) {
-      // JSON result
-      const current = queue[0];
-      if (current) {
-        queue.shift();
-        try {
-          const result = JSON.parse(trimmed);
-          if (result.error) {
-            current.reject(new Error(result.error));
-          } else {
-            current.resolve(result as SimulationResult);
+        } else if (trimmed === "__DONE__") {
+          log("Simulation complete");
+          processing = false;
+          processQueue();
+        } else if (trimmed.startsWith("{")) {
+          log(`Received result (${trimmed.length} chars)`);
+          const current = queue[0];
+          if (current) {
+            queue.shift();
+            try {
+              const result = JSON.parse(trimmed);
+              if (result.error) {
+                current.reject(new Error(result.error));
+              } else {
+                current.resolve(result as SimulationResult);
+              }
+            } catch {
+              current.reject(
+                new Error(
+                  `Bad JSON from Octave: ${trimmed.slice(0, 200)}`,
+                ),
+              );
+            }
           }
-        } catch (e) {
-          current.reject(new Error(`Bad JSON from Octave: ${trimmed.slice(0, 200)}`));
+        } else {
+          log(`stdout: ${trimmed.slice(0, 100)}`);
         }
       }
-    }
-  }
+    });
+  });
 }
 
 function processQueue() {
@@ -121,17 +116,20 @@ function processQueue() {
 
   const item = queue[0];
   const json = JSON.stringify(item.params);
-  log(`Sending params (N=${item.params.N})...`);
-  worker.stdin!.write(json + "\n");
+  log(`Running simulation (N=${item.params.N})...`);
+  // writeFileSync blocks until Octave opens the FIFO for reading,
+  // which happens immediately since the worker loops on fopen
+  writeFileSync(FIFO_PATH, json + "\n");
 }
 
-export function runSimulation(params: SimulationParams): Promise<SimulationResult> {
+export function runSimulation(
+  params: SimulationParams,
+): Promise<SimulationResult> {
   return new Promise((resolve, reject) => {
     if (!worker || !ready) {
       reject(new Error("Octave worker not ready"));
       return;
     }
-    log("Queued simulation request");
     queue.push({ params, resolve, reject });
     processQueue();
   });

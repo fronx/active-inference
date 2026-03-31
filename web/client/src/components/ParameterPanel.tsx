@@ -76,17 +76,17 @@ export function ParameterPanel({
     <div className="panel">
       <h2>Parameters</h2>
 
-      <div className="preset-row">
-        <label>Preset</label>
-        <select
-          value={preset}
-          onChange={(e) => onPreset(e.target.value as PresetName)}
-        >
-          <option value="healthy">Healthy</option>
-          <option value="depressed">Depressed</option>
-          <option value="manic">Manic</option>
-          <option value="custom">Custom</option>
-        </select>
+      <div className="preset-list">
+        {(["healthy", "depressed", "manic"] as const).map((name) => (
+          <button
+            key={name}
+            className={`preset-btn${preset === name ? " active" : ""}`}
+            disabled={running}
+            onClick={() => onPreset(name)}
+          >
+            {name}
+          </button>
+        ))}
       </div>
 
       <fieldset>

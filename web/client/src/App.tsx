@@ -40,7 +40,21 @@ export default function App() {
   const handlePreset = useCallback((name: PresetName) => {
     setPreset(name);
     if (name !== "custom") {
-      setParams(PRESETS[name]);
+      const p = PRESETS[name];
+      setParams(p);
+      // auto-run on preset click
+      const id = ++runId.current;
+      setRunning(true);
+      setStatus("sending");
+      setError(null);
+      setData([]);
+      simulate(
+        p,
+        (points) => { if (runId.current === id) setData(points); },
+        (s) => { if (runId.current === id) setStatus(s); },
+        () => { if (runId.current === id) { setRunning(false); setStatus(null); } },
+        (msg) => { if (runId.current === id) { setError(msg); setRunning(false); setStatus(null); } },
+      );
     }
   }, []);
 

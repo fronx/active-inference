@@ -50,24 +50,38 @@ header h1 {
   margin-bottom: 12px;
 }
 
-.preset-row {
-  margin-bottom: 16px;
+.preset-list {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 16px;
 }
 
-.preset-row label {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.preset-row select {
+.preset-btn {
   flex: 1;
-  padding: 4px 8px;
+  padding: 6px 0;
   border: 1px solid #ccc;
   border-radius: 4px;
+  background: #fff;
   font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.preset-btn:hover:not(:disabled):not(.active) {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.preset-btn.active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+.preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 fieldset {

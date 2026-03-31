@@ -9,23 +9,26 @@
 - Modularized Octave code into `psychology/` folder: `dem_psychology_core.m`, `psychology_expect.m`, `psychology_observe.m`, `psychology_extract.m`, `psychology_params.m`
 - Built React frontend (Vite + Recharts) with parameter sliders and 4 charts. Express backend spawns persistent Octave worker. Disk + client-side caching by parameter hash. SSE streaming.
 - Fixed Octave IPC — switched from stdin pipe to named FIFO at `/tmp/octave_psychology_worker`
-- Octave JSON pipeline tested end-to-end. Both client and server type-check clean.
-- Documented web UI setup in project README.md
 - Adapted session-start skill for slow-pace projects: briefing shows last 3 active days (not calendar days), done-stream prune threshold extended to 2 weeks
+- Replaced preset dropdown with one-click button row (auto-runs simulation on click)
+- Synced web UI data pipeline with new state-space model: added reserves, effort, fatigueState, actionTarget traces through server types, SSE streaming, client types, and charts
+- Updated chart panels to match dem_psychology.m: "State-gated expenditure" and "Outcomes and cost memory"
+- Cleared stale simulation cache (old schema)
 
 ### Open Threads
 - `web/client/README.md` still has Vite boilerplate — replace or delete
-- Does the model need state dynamics (f function) for belief momentum?
+- Preset param values (beliefPrior, M2V, M1V) in presets.ts and server index.ts are still old — need updating when psychology_params.m changes
+- Model changes from parallel session (Octave files, docs/experiments) not yet committed
 
 ### Next Steps
-- Smoke test full stack (start both servers, run simulation through UI)
-- Verify the direct-belief model produces meaningful dynamics across regimes
-- UI polish: better loading states, parameter descriptions/tooltips
+- Smoke test full stack with the new state-space model
+- Update preset values once regime parameters are finalized
+- Verify new chart traces render correctly
 
 ### Key Locations
-- `psychology/dem_psychology_core.m` — core simulation
+- `psychology/dem_psychology_core.m` — core simulation (now with hidden states)
+- `psychology/psychology_defaults.m` — shared parameters and initial conditions
 - `psychology/psychology_worker.m` — persistent Octave worker
 - `web/server/src/octave.ts` — worker management
 - `web/client/src/components/` — UI components
-- `psychology.md` — conceptual writeup
 - `.claude/skills/session-start/SKILL.md` — session start skill

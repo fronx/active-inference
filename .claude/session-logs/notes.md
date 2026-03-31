@@ -14,16 +14,17 @@
 - Synced web UI data pipeline with new state-space model: added reserves, effort, fatigueState, actionTarget traces through server types, SSE streaming, client types, and charts
 - Updated chart panels to match dem_psychology.m: "State-gated expenditure" and "Outcomes and cost memory"
 - Cleared stale simulation cache (old schema)
+- Auto-run healthy preset on first load
+- URL-based history: params encoded in URL (`?p=healthy` or `?b=...&pv=...&sv=...&n=...`), browser back/forward restores and re-runs
+- Added activation and opportunity traces to UI pipeline
 
 ### Open Threads
 - `web/client/README.md` still has Vite boilerplate — replace or delete
-- Preset param values (beliefPrior, M2V, M1V) in presets.ts and server index.ts are still old — need updating when psychology_params.m changes
-- Model changes from parallel session (Octave files, docs/experiments) not yet committed
+- Preset param values in presets.ts and server index.ts still old — need updating when psychology_params.m changes
 
 ### Next Steps
 - Smoke test full stack with the new state-space model
 - Update preset values once regime parameters are finalized
-- Verify new chart traces render correctly
 
 ### Key Locations
 - `psychology/dem_psychology_core.m` — core simulation (now with hidden states)

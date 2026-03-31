@@ -17,9 +17,11 @@ export interface TimeStep {
   reward: number;
   fatigue: number;
   reserves: number;
+  activation: number;
   effort: number;
   fatigueState: number;
   actionTarget: number;
+  opportunity: number;
 }
 
 export type PresetName = "healthy" | "depressed" | "manic" | "custom";

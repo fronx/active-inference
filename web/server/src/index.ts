@@ -78,9 +78,11 @@ app.post("/api/simulate", async (req, res) => {
         reward: result.reward[t],
         fatigue: result.fatigue[t],
         reserves: result.reserves[t],
+        activation: result.activation[t],
         effort: result.effort[t],
         fatigueState: result.fatigueState[t],
         actionTarget: result.actionTarget[t],
+        opportunity: result.opportunity[t],
       };
       res.write(`data: ${JSON.stringify(point)}\n\n`);
     }

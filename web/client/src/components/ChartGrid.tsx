@@ -37,8 +37,10 @@ export function ChartGrid({ data, running, statusLabel }: Props) {
       reward: d.reward,
       fatigue: d.fatigue,
       reserves: d.reserves,
+      activation: d.activation,
       effort: d.effort,
       fatigueState: d.fatigueState,
+      opportunity: d.opportunity,
     }));
 
   return (
@@ -104,7 +106,7 @@ export function ChartGrid({ data, running, statusLabel }: Props) {
       </div>
 
       <div className="chart-cell">
-        <h3>State-gated expenditure</h3>
+        <h3>Pacing under opportunity</h3>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -133,11 +135,21 @@ export function ChartGrid({ data, running, statusLabel }: Props) {
             />
             <Line
               type="monotone"
-              dataKey="effort"
-              name="effort"
+              dataKey="activation"
+              name="activation"
               stroke="#a855f7"
               strokeDasharray="2 2"
               strokeWidth={1.5}
+              dot={false}
+              isAnimationActive={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="opportunity"
+              name="opportunity"
+              stroke="#111827"
+              strokeDasharray="10 4"
+              strokeWidth={1.25}
               dot={false}
               isAnimationActive={false}
             />

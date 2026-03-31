@@ -33,6 +33,26 @@ octave --gui run_psychology.m
 
 See [psychology.md](psychology.md) for the full model description.
 
+## Web UI
+
+Interactive browser interface for the psychology model. Lets you pick presets (Healthy, Depressed, Manic) or tweak parameters with sliders, and streams simulation results as real-time charts.
+
+Requires Node.js and GNU Octave.
+
+```bash
+# Terminal 1: start the server (runs Octave in the background)
+cd web/server
+npm install
+npm run dev
+
+# Terminal 2: start the client
+cd web/client
+npm install
+npm run dev
+```
+
+Then open http://localhost:5173.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md) - How the SPM12 library and custom model code interact

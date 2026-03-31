@@ -23,6 +23,7 @@
 - Verify the direct-belief model produces meaningful dynamics across regimes
 - Consider whether the model needs state dynamics (f function) for belief momentum
 - UI polish: better loading states, parameter descriptions/tooltips
+- Documentation: web/client/README.md still has Vite boilerplate — could be replaced or deleted
 
 ## Commands
 ```bash

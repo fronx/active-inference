@@ -122,6 +122,16 @@ function processQueue() {
   writeFileSync(FIFO_PATH, json + "\n");
 }
 
+export function stopWorker() {
+  if (worker) {
+    log("Killing Octave worker...");
+    worker.kill();
+    worker = null;
+    ready = false;
+  }
+  try { unlinkSync(FIFO_PATH); } catch {}
+}
+
 export function runSimulation(
   params: SimulationParams,
 ): Promise<SimulationResult> {

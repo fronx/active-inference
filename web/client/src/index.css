@@ -219,10 +219,45 @@ legend {
   padding: 12px;
 }
 
+.chart-cell.wide {
+  grid-column: 1 / -1;
+}
+
 .chart-cell h3 {
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
+}
+
+.glossary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.glossary-item {
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px solid #ececec;
+  border-radius: 6px;
+}
+
+.glossary-item code {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.glossary-item p {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.glossary-item p + p {
+  margin-top: 4px;
 }
 
 .loading-overlay {

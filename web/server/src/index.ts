@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { startWorker, runSimulation } from "./octave.js";
+import { startWorker, stopWorker, runSimulation } from "./octave.js";
 import { getCache, setCache, paramHash } from "./cache.js";
 import type { SimulationParams } from "./types.js";
 
@@ -75,9 +75,11 @@ app.post("/api/simulate", async (req, res) => {
           fatigue: result.beliefs.fatigue[t],
         },
         energy: result.energy[t],
+        feltEnergy: result.feltEnergy[t],
         reward: result.reward[t],
         fatigue: result.fatigue[t],
         reserves: result.reserves[t],
+        capacity: result.capacity[t],
         activation: result.activation[t],
         effort: result.effort[t],
         fatigueState: result.fatigueState[t],
@@ -107,7 +109,17 @@ async function main() {
   });
 }
 
+function shutdown() {
+  log("Shutting down...");
+  stopWorker();
+  process.exit(0);
+}
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
+
 main().catch((err) => {
   console.error("Failed to start:", err);
+  stopWorker();
   process.exit(1);
 });

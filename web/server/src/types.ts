@@ -14,9 +14,11 @@ export interface SimulationResult {
     fatigue: number[];
   };
   energy: number[];
+  feltEnergy: number[];
   reward: number[];
   fatigue: number[];
   reserves: number[];
+  capacity: number[];
   activation: number[];
   effort: number[];
   fatigueState: number[];

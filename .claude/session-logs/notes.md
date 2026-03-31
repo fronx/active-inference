@@ -17,6 +17,10 @@
 - Auto-run healthy preset on first load
 - URL-based history: params encoded in URL (`?p=healthy` or `?b=...&pv=...&sv=...&n=...`), browser back/forward restores and re-runs
 - Added activation and opportunity traces to UI pipeline
+- Fixed Y-axis tick labels (explicit ticks instead of Recharts auto-generation on non-round domains)
+- Added capacity trace to data pipeline and body state chart
+- Server now kills Octave worker on SIGINT/SIGTERM shutdown
+- Added variable guide glossary below charts
 
 ### Open Threads
 - `web/client/README.md` still has Vite boilerplate — replace or delete

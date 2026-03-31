@@ -11,6 +11,7 @@
 - Fixed Octave IPC — switched from stdin pipe to named FIFO at `/tmp/octave_psychology_worker`
 - Octave JSON pipeline tested end-to-end. Both client and server type-check clean.
 - Documented web UI setup in project README.md
+- Adapted session-start skill for slow-pace projects: briefing shows last 3 active days (not calendar days), done-stream prune threshold extended to 2 weeks
 
 ### Open Threads
 - `web/client/README.md` still has Vite boilerplate — replace or delete
@@ -27,3 +28,4 @@
 - `web/server/src/octave.ts` — worker management
 - `web/client/src/components/` — UI components
 - `psychology.md` — conceptual writeup
+- `.claude/skills/session-start/SKILL.md` — session start skill

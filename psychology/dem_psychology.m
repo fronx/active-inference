@@ -21,8 +21,7 @@ DEM = dem_psychology_core(N, beliefPrior, M2V, M1V);
 
 % extract time series for plotting
 %--------------------------------------------------------------------------
-action.energy = 0;
-[beliefs, energies, rewards, fatigues] = psychology_extract(DEM, N, action);
+traces = psychology_extract(DEM, N);
 
 % Graphics
 %==========================================================================
@@ -37,7 +36,7 @@ axis square tight
 grid on
 
 subplot(2, 2, 2)
-plot(1:N, beliefs')
+plot(1:N, traces.beliefs')
 legend({'expected energy', 'expected reward', 'expected fatigue'}, 'Location', 'best')
 title('Beliefs about the world', 'FontSize', 14)
 xlabel('time')
@@ -46,20 +45,23 @@ axis square tight
 grid on
 
 subplot(2, 2, 3)
-plot(1:N, energies, 'LineWidth', 2)
+plot(1:N, traces.energy, 'LineWidth', 2)
 hold on
-plot([1 N], [1.0 1.0], '--k')
-title('Energy expenditure', 'FontSize', 14)
+plot(1:N, traces.reserves, '--b', 'LineWidth', 1.5)
+plot(1:N, traces.effort, ':m', 'LineWidth', 1.5)
+legend({'realized energy', 'reserves', 'effort'}, 'Location', 'best')
+title('State-Gated Expenditure', 'FontSize', 14)
 xlabel('time')
-ylabel('energy')
+ylabel('level')
 axis square tight
 grid on
 
 subplot(2, 2, 4)
-plot(1:N, rewards, 'g', 'LineWidth', 2); hold on
-plot(1:N, fatigues, 'r', 'LineWidth', 2)
-legend({'reward', 'fatigue'}, 'Location', 'best')
-title('Outcomes', 'FontSize', 14)
+plot(1:N, traces.reward, 'g', 'LineWidth', 2); hold on
+plot(1:N, traces.fatigue, 'r', 'LineWidth', 2)
+plot(1:N, traces.fatigueState, '--k', 'LineWidth', 1.5)
+legend({'reward', 'observed fatigue', 'fatigue state'}, 'Location', 'best')
+title('Outcomes and Cost Memory', 'FontSize', 14)
 xlabel('time')
 ylabel('level')
 axis square tight

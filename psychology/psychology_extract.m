@@ -1,25 +1,38 @@
-function [beliefs, energies, rewards, fatigues] = psychology_extract(DEM, N, action)
+function traces = psychology_extract(DEM, N)
 % Extract time series from a solved DEM structure.
 %
-% Returns:
-%   beliefs  - 3 x N matrix: [energy; reward; fatigue] expectations over time
-%   energies - 1 x N vector of energy expenditure (action)
-%   rewards  - 1 x N vector of actual reward (from generative process)
-%   fatigues - 1 x N vector of actual fatigue (from generative process)
+% Returns a struct with belief, observation, and hidden-state trajectories.
 
-beliefs  = zeros(3, N);
-energies = zeros(1, N);
-rewards  = zeros(1, N);
-fatigues = zeros(1, N);
+[P, ~, action, observation] = psychology_defaults();
+if isfield(DEM, 'P')
+    P = DEM.P;
+end
+
+traces = struct();
+traces.beliefs  = zeros(3, N);
+traces.energy   = zeros(1, N);
+traces.reward   = zeros(1, N);
+traces.fatigue  = zeros(1, N);
+traces.reserves = zeros(1, N);
+traces.effort   = zeros(1, N);
+traces.fatigueState = zeros(1, N);
+traces.actionTarget = zeros(1, N);
 
 for t = 1:N
-    beliefs(:, t) = DEM.qU.v{2}(:, t);
+    traces.beliefs(:, t) = DEM.qU.v{2}(:, t);
 
     a = spm_unvec(DEM.qU.a{2}(:, t), action);
-    e = a.energy;
-    energies(t) = e;
-    rewards(t)  = e / (1 + abs(e));
-    fatigues(t) = 0.3 * e^2;
+    y = spm_unvec(DEM.pU.v{1}(:, t), observation);
+    [state, ~] = psychology_state_unpack(DEM.pU.x{1}(:, t), P, ...
+        P.actionEffortGain * a.energy);
+
+    traces.actionTarget(t) = a.energy;
+    traces.energy(t)       = y.energy;
+    traces.reward(t)       = y.reward;
+    traces.fatigue(t)      = y.fatigue;
+    traces.reserves(t)     = state.reserves;
+    traces.effort(t)       = state.effort;
+    traces.fatigueState(t) = state.fatigueState;
 end
 
 end

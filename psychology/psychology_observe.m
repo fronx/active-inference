@@ -1,12 +1,14 @@
 function g = psychology_observe(x, v, action, P)
-% Generative process: maps energy expenditure to actual observations.
-% Simple, symmetric physics. No psychology baked in.
+% Generative process: latent reserves and fatigue shape what the action
+% actually produces over time.
 
-action = spm_unvec(action, P);
-energy = action.energy;
+[~, actionTemplate, ~, ~] = deal([]);
+[~, ~, actionTemplate, ~] = psychology_defaults();
+if isempty(action)
+    action = actionTemplate;
+end
+action = spm_unvec(action, actionTemplate);
 
-g.energy  = energy;
-g.reward  = energy / (1 + abs(energy));    % diminishing returns
-g.fatigue = 0.3 * energy.^2;              % quadratic cost
+[~, g] = psychology_state_unpack(x, P, P.actionEffortGain * action.energy);
 
 end

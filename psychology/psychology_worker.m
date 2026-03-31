@@ -37,18 +37,20 @@ while true
         M1V         = params.M1V;
 
         DEM = dem_psychology_core(N, beliefPrior, M2V, M1V);
-
-        action.energy = 0;
-        [beliefs, energies, rewards, fatigues] = psychology_extract(DEM, N, action);
+        traces = psychology_extract(DEM, N);
 
         result.timesteps        = 1:N;
         result.freeEnergy       = -DEM.J;
-        result.beliefs.energy   = beliefs(1, :);
-        result.beliefs.reward   = beliefs(2, :);
-        result.beliefs.fatigue  = beliefs(3, :);
-        result.energy  = energies;
-        result.reward  = rewards;
-        result.fatigue = fatigues;
+        result.beliefs.energy   = traces.beliefs(1, :);
+        result.beliefs.reward   = traces.beliefs(2, :);
+        result.beliefs.fatigue  = traces.beliefs(3, :);
+        result.energy           = traces.energy;
+        result.reward           = traces.reward;
+        result.fatigue          = traces.fatigue;
+        result.reserves         = traces.reserves;
+        result.effort           = traces.effort;
+        result.fatigueState     = traces.fatigueState;
+        result.actionTarget     = traces.actionTarget;
 
         fprintf('%s\n', jsonencode(result));
     catch err

@@ -1,10 +1,14 @@
 function g = psychology_expect(x, v, P)
-% Generative model: beliefs directly predict observations.
-% v = [expected_energy; expected_reward; expected_fatigue]
-% No categorical layer — beliefs are about the world, not about self-type.
+% Generative model: hidden states predict observations, while beliefs shape
+% the state dynamics through M(1).f.
 
-g.energy  = v(1);
-g.reward  = v(2);
-g.fatigue = v(3);
+[~, stateObs] = psychology_state_unpack(x, P);
+
+g.energy  = (1 - P.beliefWeightEnergy) * stateObs.energy ...
+    + P.beliefWeightEnergy * v(1);
+g.reward  = (1 - P.beliefWeightReward) * stateObs.reward ...
+    + P.beliefWeightReward * v(2);
+g.fatigue = (1 - P.beliefWeightFatigue) * stateObs.fatigue ...
+    + P.beliefWeightFatigue * v(3);
 
 end

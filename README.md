@@ -56,6 +56,7 @@ Then open http://localhost:5173.
 ## Documentation
 
 - [Architecture](docs/architecture.md) - How the SPM12 library and custom model code interact
+- [Experiments](docs/experiments/README.md) - Modeling log: beliefs, interventions, outcomes, and next steps
 
 ## Notes
 

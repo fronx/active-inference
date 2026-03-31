@@ -2,7 +2,7 @@ function dx = psychology_state_model_f(x, v, P)
 % Generative model dynamics for reserves, fatigue, and activation.
 
 if isempty(P)
-    [P, ~, ~, ~] = psychology_defaults();
+    [~, P, ~, ~, ~, ~] = psychology_defaults();
 end
 
 [state, ~] = psychology_state_unpack(x, P, 0);
@@ -13,15 +13,33 @@ targetActivation = P.activationBaseline ...
     + P.modelDriveReward  * v(2) ...
     - P.modelDriveFatigue * v(3) ...
     - P.activationFatigueDrag * state.fatigueState ...
-    - P.activationReserveDrag * max(P.reserveSetpoint - state.reserves, 0);
+    - P.activationReserveDrag * smooth_positive(state.capacity - state.reserves, P.softplusScale);
 
 rest = max(1 - state.activation / P.activationMax, 0);
+moderate = state.opportunity ...
+    * exp(-((state.energy - P.moderateUseCenter).^2) / (2 * P.moderateUseWidth^2));
+underuse = state.opportunity ...
+    * psychology_sigmoid((P.underuseThreshold - state.energy) / P.underuseScale);
+overuse  = state.opportunity ...
+    * psychology_sigmoid((state.energy - P.overuseThreshold) / P.overuseScale);
 
-dx    = zeros(3, 1);
-dx(1) = P.reserveRecover * (P.reserveSetpoint - state.reserves) * rest ...
+dx    = zeros(4, 1);
+dx(1) = P.reserveRecover * (state.capacity - state.reserves) * rest ...
     - P.reserveSpend * state.energy;
 dx(2) = P.fatigueBuild * state.energy ...
     - P.fatigueDecay * rest * state.fatigueState;
 dx(3) = (targetActivation - x(3)) / P.activationTau;
+dx(4) = P.capacityHomeostasis * (P.capacityBaseline - state.capacity) ...
+    + P.capacityBuild * moderate ...
+    - P.capacityAtrophy * underuse ...
+    - P.capacityDamage * overuse;
 
+end
+
+function y = smooth_positive(x, scale)
+y = log1p(exp(scale * x)) / scale;
+end
+
+function y = psychology_sigmoid(x)
+y = 1 ./ (1 + exp(-x));
 end

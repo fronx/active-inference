@@ -45,9 +45,11 @@ while true
         result.beliefs.reward   = traces.beliefs(2, :);
         result.beliefs.fatigue  = traces.beliefs(3, :);
         result.energy           = traces.energy;
+        result.feltEnergy       = traces.feltEnergy;
         result.reward           = traces.reward;
         result.fatigue          = traces.fatigue;
         result.reserves         = traces.reserves;
+        result.capacity         = traces.capacity;
         result.activation       = traces.activation;
         result.effort           = traces.effort;
         result.fatigueState     = traces.fatigueState;

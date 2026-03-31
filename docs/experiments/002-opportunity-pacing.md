@@ -1,6 +1,6 @@
 # Experiment 002: Opportunity-Gated Pacing
 
-Status: running
+Status: completed
 
 Date: 2026-03-31
 
@@ -43,7 +43,7 @@ The key test is whether the same environment now yields different pacing signatu
 
 ## Observed
 
-Current headless runs show the intended qualitative separation, but not yet a finished model.
+This pass produced the intended qualitative separation, but it also exposed a missing slow body variable.
 
 Healthy:
 
@@ -71,7 +71,7 @@ Manic:
 
 ## Update
 
-This version is close to the right abstraction.
+This version established the right fast variables and the right environmental structure.
 
 What now seems correct:
 
@@ -84,9 +84,10 @@ What still looks incomplete:
 - depressed behavior is not yet sufficiently inertial or self-neglecting
 - a slow deconditioning / maintenance variable may still be needed to capture atrophy from chronic underuse
 - the depressed preset still has a free-energy problem, which means the current belief-action geometry is not fully right
+- the model still does not clearly separate body reality from the person's beliefs about that body
 
 ## Next
 
-1. Tune the depressed preset so underuse is more stable than partial engagement.
-2. Decide whether deconditioning should be a fourth state or a dynamic reserve ceiling.
-3. Export figures automatically after model changes so the docs stay current.
+1. Split the generative process and generative model more explicitly into body reality versus self-model.
+2. Add a slow `capacity` state so underuse can atrophy the body and overuse can damage it.
+3. Revisit the observation vocabulary so `reward`, `energy`, and felt activation are not conflated.

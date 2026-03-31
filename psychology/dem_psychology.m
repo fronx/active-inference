@@ -37,7 +37,7 @@ grid on
 
 subplot(2, 2, 2)
 plot(1:N, traces.beliefs')
-legend({'expected energy', 'expected reward', 'expected fatigue'}, 'Location', 'best')
+legend({'expected vitality', 'expected reward', 'expected fatigue'}, 'Location', 'best')
 title('Beliefs about the world', 'FontSize', 14)
 xlabel('time')
 ylabel('expectation')
@@ -47,11 +47,12 @@ grid on
 subplot(2, 2, 3)
 plot(1:N, traces.energy, 'LineWidth', 2)
 hold on
+plot(1:N, traces.feltEnergy, '-', 'Color', [0.65 0.08 0.95], 'LineWidth', 1.5)
 plot(1:N, traces.reserves, '--b', 'LineWidth', 1.5)
 plot(1:N, traces.activation, ':m', 'LineWidth', 1.5)
 plot(1:N, traces.opportunity, '-.k', 'LineWidth', 1.2)
-legend({'realized energy', 'reserves', 'activation', 'opportunity'}, 'Location', 'best')
-title('Pacing Under Opportunity', 'FontSize', 14)
+legend({'realized energy', 'felt energy', 'reserves', 'activation', 'opportunity'}, 'Location', 'best')
+title('Energy, Vigor, and Opportunity', 'FontSize', 14)
 xlabel('time')
 ylabel('level')
 axis square tight

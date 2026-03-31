@@ -13,7 +13,10 @@ end
 set(0, 'defaultfigurevisible', 'off');
 
 export_experiment_001(fullfile(assets_dir, '001-state-dynamics.png'));
-export_experiment_002(fullfile(assets_dir, '002-opportunity-pacing.png'));
+export_experiment_003(fullfile(assets_dir, '003-body-self-model-split.png'));
+export_experiment_004_figure(fullfile(assets_dir, '004-felt-energy-observation.png'));
+export_experiment_005_figure(fullfile(assets_dir, '005-body-limited-mobilization.png'));
+export_experiment_006_figure(fullfile(assets_dir, '006-felt-energy-damping.png'));
 
 end
 
@@ -88,6 +91,48 @@ for i = 1:numel(regimes)
     plot(1:N, traces.fatigueState, '--k', 'LineWidth', 1.5)
     hold off
     title(sprintf('%s outcomes', regimes{i}))
+    axis tight
+    grid on
+end
+
+print(fig, outfile, '-dpng', '-r160');
+close(fig);
+end
+
+function export_experiment_003(outfile)
+regimes = {'healthy', 'depressed', 'manic'};
+
+fig = figure('visible', 'off', 'position', [100 100 1500 1100]);
+
+for i = 1:numel(regimes)
+    [N, beliefPrior, M2V, M1V] = psychology_params(regimes{i});
+    DEM = dem_psychology_core(N, beliefPrior, M2V, M1V);
+    traces = psychology_extract(DEM, N);
+
+    subplot(3, 3, 3 * (i - 1) + 1)
+    plot(1:N, traces.energy, 'k', 'LineWidth', 2); hold on
+    plot(1:N, traces.activation, ':m', 'LineWidth', 1.5)
+    plot(1:N, traces.opportunity, '-.b', 'LineWidth', 1.0)
+    hold off
+    title(sprintf('%s output', regimes{i}))
+    axis tight
+    grid on
+
+    subplot(3, 3, 3 * (i - 1) + 2)
+    plot(1:N, traces.reserves, '--b', 'LineWidth', 1.5); hold on
+    plot(1:N, traces.capacity, 'c', 'LineWidth', 2)
+    plot(1:N, traces.fatigueState, '--r', 'LineWidth', 1.5)
+    hold off
+    title(sprintf('%s body state', regimes{i}))
+    axis tight
+    grid on
+
+    subplot(3, 3, 3 * (i - 1) + 3)
+    plot(1:N, traces.reward, 'g', 'LineWidth', 2); hold on
+    plot(1:N, traces.fatigue, 'r', 'LineWidth', 2)
+    plot(1:N, traces.actionTarget, ':k', 'LineWidth', 1.5)
+    hold off
+    title(sprintf('%s value and cost', regimes{i}))
     axis tight
     grid on
 end

@@ -14,9 +14,11 @@ traces.energy   = zeros(1, N);
 traces.reward   = zeros(1, N);
 traces.fatigue  = zeros(1, N);
 traces.reserves = zeros(1, N);
-traces.effort   = zeros(1, N);
+traces.activation = zeros(1, N);
+traces.effort     = zeros(1, N);
 traces.fatigueState = zeros(1, N);
 traces.actionTarget = zeros(1, N);
+traces.opportunity = zeros(1, N);
 
 for t = 1:N
     traces.beliefs(:, t) = DEM.qU.v{2}(:, t);
@@ -24,15 +26,17 @@ for t = 1:N
     a = spm_unvec(DEM.qU.a{2}(:, t), action);
     y = spm_unvec(DEM.pU.v{1}(:, t), observation);
     [state, ~] = psychology_state_unpack(DEM.pU.x{1}(:, t), P, ...
-        P.actionEffortGain * a.energy);
+        P.actionActivationGain * a.energy, t / N);
 
     traces.actionTarget(t) = a.energy;
     traces.energy(t)       = y.energy;
     traces.reward(t)       = y.reward;
     traces.fatigue(t)      = y.fatigue;
     traces.reserves(t)     = state.reserves;
-    traces.effort(t)       = state.effort;
+    traces.activation(t)   = state.activation;
+    traces.effort(t)       = state.activation;
     traces.fatigueState(t) = state.fatigueState;
+    traces.opportunity(t)  = state.opportunity;
 end
 
 end

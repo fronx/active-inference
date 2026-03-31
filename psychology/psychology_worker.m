@@ -48,9 +48,11 @@ while true
         result.reward           = traces.reward;
         result.fatigue          = traces.fatigue;
         result.reserves         = traces.reserves;
+        result.activation       = traces.activation;
         result.effort           = traces.effort;
         result.fatigueState     = traces.fatigueState;
         result.actionTarget     = traces.actionTarget;
+        result.opportunity      = traces.opportunity;
 
         fprintf('%s\n', jsonencode(result));
     catch err

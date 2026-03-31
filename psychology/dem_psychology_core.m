@@ -31,7 +31,7 @@ G(1).v  = y0;
 G(1).V  = exp(16);
 G(1).W  = exp(16);
 G(1).U  = exp(2);
-G(1).R  = ones(3, 1);
+G(1).R  = ones(4, 1);
 G(1).pE = P;
 
 G(2).a  = spm_vec(action);

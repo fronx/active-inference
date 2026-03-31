@@ -1,6 +1,6 @@
 # Experiment 001: Add State Dynamics to the Psychology Model
 
-Status: proposed
+Status: completed
 
 Date: 2026-03-31
 
@@ -55,27 +55,40 @@ More specifically:
 
 ## Observed
 
-Current baseline result before the change:
+The first state-dynamics pass succeeded in one narrow sense and failed in the more important sense.
 
-- Healthy, depressed, and manic all flatten by about `t = 10`
-- There is no genuine recovery cycle
-- There is no manic overshoot and crash
-- There is no depressive spiral with temporal memory
+It did add temporal memory:
 
-This supports the core diagnosis: the missing ingredient is stateful dynamics, not just different prior settings.
+- `reserves` no longer reset every step
+- `fatigue` persisted across time
+- realized energy became history-dependent rather than a per-step independent choice
+
+But it still did not produce the pacing behaviors we wanted:
+
+- all three regimes remained too similar in their actual trajectories
+- there was no clean healthy spend-rest-recover rhythm
+- depressed and manic did not separate as underuse versus overspending styles
+- action coupling was too weak or too easily absorbed by state inference
+
+This made the model temporally smoother, but not psychologically sharper.
+
+## Figure
+
+![Experiment 001 figure](assets/001-state-dynamics.png)
 
 ## Update
 
-Current working belief:
+Updated belief after implementing the first version:
 
-- two hidden states may be enough for a better transient
-- three hidden states are likely the smallest robust design if we want repeated pacing dynamics rather than just convergence to a different fixed point
+- hidden states are necessary, but not sufficient
+- a pure reserves-fatigue-effort model without structured opportunities tends to relax toward generic trajectories
+- if we want cycles to emerge, the agent needs something to pace itself against
 
-The extra `effort` state is important because action in `spm_ADEM` is optimized directly. Without an internal effort state, action can collapse too quickly to a static compromise. A fast effort state gives the model inertia; reserves and fatigue then shape that trajectory over time.
+The important shift was conceptual: the right fast variable is not just `effort`, but `activation` in the presence of opportunities. Something can feel energizing in the moment while still drawing down longer-term reserves.
 
 ## Next
 
-1. Implement `psychology_state_f` and `psychology_state_g` for both `G` and `M`.
-2. Keep observation channels near the same numeric scale so no one channel dominates through precision alone.
-3. Use smooth nonlinearities only; avoid hard `abs`, `max`, or clipping inside the solver path where possible.
-4. Run all three regimes and inspect whether the new dynamics produce distinct temporal signatures rather than three new fixed points.
+1. Add a deterministic stream of opportunity pulses.
+2. Replace the old `effort` interpretation with `activation`.
+3. Gate reward by opportunity so action is worthwhile only when something salient is happening.
+4. Treat depressed and manic differences as pacing differences relative to the same opportunity stream.

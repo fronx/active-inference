@@ -48,9 +48,10 @@ subplot(2, 2, 3)
 plot(1:N, traces.energy, 'LineWidth', 2)
 hold on
 plot(1:N, traces.reserves, '--b', 'LineWidth', 1.5)
-plot(1:N, traces.effort, ':m', 'LineWidth', 1.5)
-legend({'realized energy', 'reserves', 'effort'}, 'Location', 'best')
-title('State-Gated Expenditure', 'FontSize', 14)
+plot(1:N, traces.activation, ':m', 'LineWidth', 1.5)
+plot(1:N, traces.opportunity, '-.k', 'LineWidth', 1.2)
+legend({'realized energy', 'reserves', 'activation', 'opportunity'}, 'Location', 'best')
+title('Pacing Under Opportunity', 'FontSize', 14)
 xlabel('time')
 ylabel('level')
 axis square tight
@@ -61,7 +62,7 @@ plot(1:N, traces.reward, 'g', 'LineWidth', 2); hold on
 plot(1:N, traces.fatigue, 'r', 'LineWidth', 2)
 plot(1:N, traces.fatigueState, '--k', 'LineWidth', 1.5)
 legend({'reward', 'observed fatigue', 'fatigue state'}, 'Location', 'best')
-title('Outcomes and Cost Memory', 'FontSize', 14)
+title('Reward and Recovery Cost', 'FontSize', 14)
 xlabel('time')
 ylabel('level')
 axis square tight

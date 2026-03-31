@@ -33,3 +33,4 @@ Each experiment file should capture:
 ## Index
 
 - [001-state-dynamics.md](/Users/fnx/code/active-inference/docs/experiments/001-state-dynamics.md) - Add hidden states so the psychology model can remember exertion over time
+- [002-opportunity-pacing.md](/Users/fnx/code/active-inference/docs/experiments/002-opportunity-pacing.md) - Reframe the model around opportunity pulses, activation, reserves, and recovery pacing

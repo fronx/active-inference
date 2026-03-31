@@ -3,3 +3,4 @@ morphogenesis_frames/*
 morphogenesis.mp4
 node_modules/
 dist/
+.playwright-mcp/
